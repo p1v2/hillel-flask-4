@@ -14,6 +14,7 @@ def hello():
     # print day of month
     print(datetime.now().strftime("%d"))
     print("Goodbye")
+    print("end")
 
 
 if __name__ == "__main__":
