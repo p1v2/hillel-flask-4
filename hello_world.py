@@ -5,6 +5,8 @@ def hello():
     print("initialization")
     print("Hello world!")
     print(datetime.now())
+    # Print current timezone
+    print(datetime.now().astimezone().tzinfo)
     print("Goodbye")
 
 
