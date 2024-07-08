@@ -11,6 +11,8 @@ def hello():
     print(datetime.now().astimezone().tzinfo)
     # print day of week
     print(datetime.now().strftime("%A"))
+    # print day of month
+    print(datetime.now().strftime("%d"))
     print("Goodbye")
 
 
