@@ -8,6 +8,8 @@ def hello():
     print(datetime.now())
     # Print operation system version
     print(platform.platform())
+    # print day of week
+    print(datetime.now().strftime("%A"))
     print("Goodbye")
 
 
