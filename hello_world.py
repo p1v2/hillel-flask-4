@@ -17,6 +17,7 @@ def hello():
     print(datetime.now().strftime("%d"))
     print("Goodbye")
     print("end")
+    print("=" * 10)
 
 
 if __name__ == "__main__":
