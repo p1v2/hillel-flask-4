@@ -3,7 +3,9 @@ from datetime import datetime
 
 def hello():
     print("initialization")
-    print("Hello world!")
+    # Input username
+    username = input("Enter your name: ")
+    print(f"Hello {username}!")
     print(datetime.now())
     # Print current timezone
     print(datetime.now().astimezone().tzinfo)
