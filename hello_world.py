@@ -2,6 +2,7 @@ from datetime import datetime
 
 
 def hello():
+    print("=" * 10)
     print("initialization")
     # Input username
     username = input("Enter your name: ")
