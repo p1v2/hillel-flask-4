@@ -7,6 +7,8 @@ def hello():
     print(datetime.now())
     # Print current timezone
     print(datetime.now().astimezone().tzinfo)
+    # print day of week
+    print(datetime.now().strftime("%A"))
     print("Goodbye")
 
 
