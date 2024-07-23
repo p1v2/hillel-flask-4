@@ -1,6 +1,13 @@
+import json
+from sqlite3 import IntegrityError
 from urllib import request
 
 from flask import Flask, request
+from pydantic import ValidationError
+
+from db import read_products, create_product, read_product, product_partial_update, delete_product
+from models import ProductPayload
+from serializers import serialize_products, serialize_product
 
 app = Flask(__name__)
 
@@ -10,41 +17,59 @@ products = []
 # Rest API for data from the list
 
 
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ValueError):
+            return str(obj)
+
+        return super().default(obj)
+
+
 @app.route("/products", methods=["GET", "POST"])
-def get_products():
-    if request.method == "POST":
-        # Add product to the list
-        product = request.json
-        products.append(product)
-        return product
-    elif request.method == "GET":
-        return products
-    else:
-        # Return 405 Method Not Allowed
-        return "Method Not Allowed", 405
-
-
-@app.route("/products/<int:index>", methods=["GET", "PUT", "DELETE"])
-def get_product(index):
+def products_api():
     if request.method == "GET":
-        # Return product by index
-        return products[index]
-    elif request.method == "PUT":
-        # Update product by index
-        product = request.json
-        products[index] = product
-        return product
-    elif request.method == "DELETE":
-        # Delete product by index
-        product = products.pop(index)
-        if product:
-            return "", 204
+        products = read_products()
+
+        return serialize_products(products)
+    elif request.method == "POST":
+        product_data = request.json
+
+        try:
+            product_payload = ProductPayload(**product_data)
+        except ValidationError as error:
+            return json.dumps(error.errors(), cls=CustomJSONEncoder), 400
+
+        try:
+            product = create_product(product_payload)
+        except IntegrityError as error:
+            if "UNIQUE constraint failed: product.name" in str(error):
+                return {"error": "Product with this name already exists"}, 400
         else:
-            return "Product not found", 404
-    else:
-        # Return 405 Method Not Allowed
-        return "Method Not Allowed", 405
+            return serialize_product(product), 201
 
 
-if __name__ == "__main__":
-    app.run(port=5002, debug=False)
+@app.route("/products/<int:id>", methods=["GET", "PATCH", "DELETE"])
+def product_api(id: int):
+    if request.method == "GET":
+        product = read_product(id)
+
+        if product is None:
+            return {"error": "Product not found"}, 404
+        else:
+            return serialize_product(product)
+    elif request.method == "PATCH":
+        update_data = request.json
+
+        product_partial_update(id, update_data)
+
+        updated_product = read_product(id)
+
+        return serialize_product(updated_product)
+
+    elif request.method == "DELETE":
+        deleted_count = delete_product(id)
+
+        if deleted_count == 0:
+            return {"error": "Product not found"}, 404
+        else:
+            return "", 204

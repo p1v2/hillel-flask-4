@@ -3,11 +3,12 @@ import requests
 
 def test_product_create():
     # Create a new product
-    url = "http://localhost:5002/products"
+    url = "http://127.0.0.1:5002/products"
 
     data = {
-        "name": "Product 1",
-        "price": 100
+        "name": "jack mogran",
+        "price": 80,
+        "is_18_plus": False,
     }
 
     response = requests.post(url, json=data)
@@ -18,7 +19,7 @@ def test_product_create():
 
 def test_product_delete():
     # Delete a product by index
-    url = "http://localhost:5002/products/0"
+    url = "http://localhost:5002/products/10"
 
     response = requests.delete(url)
 
@@ -28,18 +29,17 @@ def test_product_delete():
 
 def test_product_update():
     # Update a product by index
-    url = "http://localhost:5002/products/2"
+    url = "http://localhost:5002/products/3"
 
     data = {
-        "name": "Product 1",
-        "price": 500
+        "is_18_plus": False
     }
 
-    response = requests.put(url, json=data)
+    response = requests.patch(url, json=data)
 
     print(response.status_code)
     print(response.text)
 
 
 if __name__ == "__main__":
-    test_product_delete()
+    test_product_create()
