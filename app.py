@@ -4,30 +4,37 @@ from flask import Flask, request
 
 app = Flask(__name__)
 
-
-products = []
-
+products = [
+    {"id": 1, "name": "Coca-Cola"},
+    {"id": 2, "name": "Pepsi"},
+    {"id": 3, "name": "Sprite"},
+    {"id": 4, "name": "Banana Juice"},
+    {"id": 5, "name": "Banana Smoothie"}
+]
 # Rest API for data from the list
 
 
-@app.route("/products", methods=["GET", "POST"])
+@app.route("/products/", methods=["GET", "POST"])
 def get_products():
     if request.method == "POST":
-        # Add product to the list
         product = request.json
         products.append(product)
         return product
     elif request.method == "GET":
-        return products
+        search_name = request.args.get('name', '').lower()
+        if search_name:
+            filtered_products = [product for product in products if search_name in product['name'].lower()]
+        else:
+            filtered_products = products
+        return filtered_products
     else:
         # Return 405 Method Not Allowed
         return "Method Not Allowed", 405
 
 
-@app.route("/products/<int:index>", methods=["GET", "PUT", "DELETE"])
+@app.route("/products/<index>/", methods=["GET", "PUT", "DELETE"])
 def get_product(index):
     if request.method == "GET":
-        # Return product by index
         return products[index]
     elif request.method == "PUT":
         # Update product by index
@@ -47,4 +54,4 @@ def get_product(index):
 
 
 if __name__ == "__main__":
-    app.run(port=5002, debug=False)
+    app.run(port=5002, debug=True)
