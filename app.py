@@ -1,75 +1,98 @@
-import json
-from sqlite3 import IntegrityError
-from urllib import request
+from datetime import datetime
 
 from flask import Flask, request
-from pydantic import ValidationError
+from peewee import IntegrityError
 
-from db import read_products, create_product, read_product, product_partial_update, delete_product
-from models import ProductPayload
-from serializers import serialize_products, serialize_product
+from peewee_db import Product, Category
+from serializers import serialize_products, serialize_categories
 
 app = Flask(__name__)
 
-
-products = []
-
-# Rest API for data from the list
-
-
-class CustomJSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, ValueError):
-            return str(obj)
-
-        return super().default(obj)
+import logging
+logger = logging.getLogger('peewee')
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.DEBUG)
 
 
 @app.route("/products", methods=["GET", "POST"])
 def products_api():
     if request.method == "GET":
-        products = read_products()
+        start = datetime.now()
+        products = Product.select(Product, Category).join(Category)
 
-        return serialize_products(products)
+        resp = serialize_products(products)
+        end = datetime.now()
+
+        print(f"Time taken: {(end - start).total_seconds()} seconds")
+        return resp
     elif request.method == "POST":
         product_data = request.json
 
         try:
-            product_payload = ProductPayload(**product_data)
-        except ValidationError as error:
-            return json.dumps(error.errors(), cls=CustomJSONEncoder), 400
-
-        try:
-            product = create_product(product_payload)
+            product = Product(**product_data)
+            product.validate()
+            product.save()
+        except ValueError as error:
+            return {"error": str(error)}, 400
         except IntegrityError as error:
             if "UNIQUE constraint failed: product.name" in str(error):
                 return {"error": "Product with this name already exists"}, 400
+            else:
+                raise
         else:
-            return serialize_product(product), 201
+            return product.model_dump(), 201
 
 
-@app.route("/products/<int:id>", methods=["GET", "PATCH", "DELETE"])
-def product_api(id: int):
+@app.route("/products/<int:id>", methods=["GET", "PATCH", "PUT", "DELETE"])
+def product_api(id):
+    product = Product.get_or_none(id=id)
+
+    if product is None:
+        return {"error": "Product not found"}, 404
+
     if request.method == "GET":
-        product = read_product(id)
-
-        if product is None:
-            return {"error": "Product not found"}, 404
-        else:
-            return serialize_product(product)
+        return product.model_dump()
     elif request.method == "PATCH":
+        product_update_data = request.json
+
+        for key, value in product_update_data.items():
+            setattr(product, key, value)
+
+        product.save()
+        return product.model_dump()
+    elif request.method == "PUT":
         update_data = request.json
 
-        product_partial_update(id, update_data)
+        try:
+            product.name = update_data["name"]
+            product.price = update_data["price"]
+            product.is_18_plus = update_data["is_18_plus"]
+        except KeyError as error:
+            return {"error": f"attribute {str(error)} is not set"}, 400
 
-        updated_product = read_product(id)
-
-        return serialize_product(updated_product)
-
+        product.save()
+        return product.model_dump()
     elif request.method == "DELETE":
-        deleted_count = delete_product(id)
+        # DON'T EVER DO THIS IN PRODUCTION
+        # THIS DELETES THE WHOLE TABLE!!!!!!!
+        # product.delete()
 
-        if deleted_count == 0:
-            return {"error": "Product not found"}, 404
-        else:
-            return "", 204
+        product.delete_instance()
+        return "", 204
+    else:
+        return {"error": "Method not allowed"}, 405
+
+
+@app.route("/categories", methods=["GET", "POST"])
+def categories_api():
+    if request.method == "GET":
+        categories = Category.select()
+
+        return serialize_categories(categories)
+    elif request.method == "POST":
+        category_data = request.json
+
+        category = Category(**category_data)
+        category.save()
+
+        return category.model_dump(), 201

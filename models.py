@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any
 from typing_extensions import Self
 
-from pydantic import BaseModel, field_validator, ValidationError, model_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 
 class ProductPayload(BaseModel):
