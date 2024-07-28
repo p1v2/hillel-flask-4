@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from flask import Flask, request
-from peewee import IntegrityError
+from peewee import IntegrityError, fn
 
 from peewee_db import Product, Category
 from serializers import serialize_products, serialize_categories
@@ -18,7 +18,13 @@ logger.setLevel(logging.DEBUG)
 def products_api():
     if request.method == "GET":
         start = datetime.now()
-        products = Product.select(Product, Category).join(Category)
+        query = request.args.get('name', '')
+
+        if query:
+            products = (Product.select(Product, Category).join(Category)
+                        .where(fn.lower(Product.name).contains(query.lower())))
+        else:
+            products = Product.select(Product, Category).join(Category)
 
         resp = serialize_products(products)
         end = datetime.now()

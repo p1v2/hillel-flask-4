@@ -56,7 +56,29 @@ def test_category_create():
     print(response.text)
 
 
+def test_products_search():
+    url = "http://127.0.0.1:5002/products?name=Sprite"
+    response = requests.get(url)
+
+    print(response.status_code)
+
+    response_json = response.json()
+    print(response_json)
+
+
+def test_products_all():
+    url = "http://127.0.0.1:5002/products"
+    response = requests.get(url)
+
+    print(response.status_code)
+
+    response_json = response.json()
+    print(response_json)
+
+
 if __name__ == "__main__":
+    test_products_search()
+    test_products_all()
     # Generate 1000 products
-    for i in range(100):
-        test_product_create(f"Product {i}")
+    # for i in range(100):
+    #     test_product_create(f"Product {i}")
