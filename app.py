@@ -8,6 +8,14 @@ from serializers import serialize_products, serialize_categories
 
 app = Flask(__name__)
 
+products = [
+    {"id": 1, "name": "Coca-Cola"},
+    {"id": 2, "name": "Pepsi"},
+    {"id": 3, "name": "Sprite"},
+    {"id": 4, "name": "Banana Juice"},
+    {"id": 5, "name": "Banana Smoothie"}
+]
+# Rest API for data from the list
 import logging
 logger = logging.getLogger('peewee')
 logger.addHandler(logging.StreamHandler())
@@ -23,6 +31,22 @@ def products_api():
         resp = serialize_products(products)
         end = datetime.now()
 
+@app.route("/products/", methods=["GET", "POST"])
+def get_products():
+    if request.method == "POST":
+        product = request.json
+        products.append(product)
+        return product
+    elif request.method == "GET":
+        search_name = request.args.get('name', '').lower()
+        if search_name:
+            filtered_products = [product for product in products if search_name in product['name'].lower()]
+        else:
+            filtered_products = products
+        return filtered_products
+    else:
+        # Return 405 Method Not Allowed
+        return "Method Not Allowed", 405
         print(f"Time taken: {(end - start).total_seconds()} seconds")
         return resp
     elif request.method == "POST":
@@ -50,6 +74,10 @@ def product_api(id):
     if product is None:
         return {"error": "Product not found"}, 404
 
+@app.route("/products/<index>/", methods=["GET", "PUT", "DELETE"])
+def get_product(index):
+    if request.method == "GET":
+        return products[index]
     if request.method == "GET":
         return product.model_dump()
     elif request.method == "PATCH":
@@ -95,4 +123,6 @@ def categories_api():
         category = Category(**category_data)
         category.save()
 
+if __name__ == "__main__":
+    app.run(port=5002, debug=True)
         return category.model_dump(), 201
