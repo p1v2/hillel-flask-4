@@ -6,8 +6,8 @@ def test_product_create():
     url = "http://localhost:5002/products"
 
     data = {
-        "name": "Product 1",
-        "price": 100
+        "id": 8,
+        "name": "7up"
     }
 
     response = requests.post(url, json=data)
@@ -31,8 +31,7 @@ def test_product_update():
     url = "http://localhost:5002/products/2"
 
     data = {
-        "name": "Product 1",
-        "price": 500
+        "name": "Mirinda"
     }
 
     response = requests.put(url, json=data)
