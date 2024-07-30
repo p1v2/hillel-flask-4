@@ -32,22 +32,23 @@ def get_products():
         return "Method Not Allowed", 405
 
 
-@app.route("/products/<index>/", methods=["GET", "PUT", "DELETE"])
-def get_product(index):
+@app.route("/products/<int:id>/", methods=["GET", "PUT", "DELETE"])
+def get_product(id):
     if request.method == "GET":
-        return products[index]
+        return products[id]
     elif request.method == "PUT":
         # Update product by index
         product = request.json
-        products[index] = product
+        products[id] = product
         return product
     elif request.method == "DELETE":
-        # Delete product by index
-        product = products.pop(index)
-        if product:
-            return "", 204
+        product = (p for p in products if p["id"] == id), None
+
+        if id not in product:
+            return "Product Not Found", 404
         else:
-            return "Product not found", 404
+            products[:] = [p for p in products if p["id"] != id]
+            return '', 204
     else:
         # Return 405 Method Not Allowed
         return "Method Not Allowed", 405

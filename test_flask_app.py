@@ -18,7 +18,7 @@ def test_product_create():
 
 def test_product_delete():
     # Delete a product by index
-    url = "http://localhost:5002/products/0"
+    url = "http://localhost:5002/products/8"
 
     response = requests.delete(url)
 
