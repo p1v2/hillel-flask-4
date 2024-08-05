@@ -74,6 +74,11 @@ class AppTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json["message"], "Product deleted successfully")
 
+        # Verify if the product is deleted
+        get_response = self.app.get("/products", json={"name": "Product_for_Deleting", "price": 150})
+        self.assertEqual(get_response.status_code, 404)
+        self.assertEqual(get_response.json["error"], "Product not found")
+
     # Test for deleting a non-existing product
 
     def test_product_delete_non_existing(self):
