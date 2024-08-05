@@ -33,7 +33,7 @@ class Product(BaseModel):
     price = FloatField(null=False)
     is_18_plus = BooleanField(default=False)
     created_at = DateTimeField(default=datetime.now)
-    category = ForeignKeyField(Category, backref='products')
+    category = ForeignKeyField(Category, backref='products', null=True)
 
     def validate(self):
         if not self.name:
