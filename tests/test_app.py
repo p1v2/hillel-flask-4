@@ -85,7 +85,7 @@ class AppTestCase(unittest.TestCase):
         # First, delete the product
         self.app.delete(f"/products/{self.deleteme.id}")
 
-        # Then attempt to delete this product again
+    # Then attempt to delete this product again
         response = self.app.delete(f"/products/{self.deleteme.id}")
 
         self.assertEqual(response.status_code, 404)
